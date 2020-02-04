@@ -1,0 +1,17 @@
+{
+  "extends": "./config/tsconfig/tsconfig.json",
+  "compilerOptions": {
+    "declaration": true,
+    "declarationDir": "dist/",
+    "baseUrl": ".",
+    "paths": {
+      "@dpu/*": [
+        "*"
+      ]
+    }
+  },
+  "exclude": [
+    "dist/",
+    "kubernetes/"
+  ]
+}

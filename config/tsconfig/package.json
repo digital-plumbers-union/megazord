@@ -1,0 +1,9 @@
+{
+  "name": "tsconfig",
+  "description": "Base tsconfig for plumbers.",
+  "main": "tsconfig.json",
+  "version": "0.0.1",
+  "files": [
+    "tsconfig.json"
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "name": "monero-node",
+  "description": "Kubernetes manifests for monerod",
+  "main": "dist/index.js",
+  "version": "0.0.1"
+}

@@ -1,0 +1,13 @@
+# self explanatory bullshit
+*.log
+# self explanatory osx specific bullshit
+.DS_Store
+# self explanatory node.js specific bullshit
+node_modules/
+dist/
+*.js
+*.js.map
+# dont commit ya cache man
+vendor/yarn/cache
+# dont commit good sauce
+secrets/

@@ -1,0 +1,6 @@
+{
+  "name": "snippets",
+  "description": "Configuration snippets for Kubernetes models",
+  "main": "dist/index.js",
+  "version": "0.0.1"
+}

@@ -1,0 +1,6 @@
+{
+  "name": "parameters",
+  "description": "Common parameters for @jkcfg/kubernetes",
+  "main": "dist/index.js",
+  "version": "0.0.1"
+}

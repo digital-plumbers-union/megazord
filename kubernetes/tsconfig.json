@@ -1,0 +1,23 @@
+{
+  "extends": "../config/tsconfig/tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist/",
+    "declaration": false,
+    "sourceMap": false,
+    "module": "es6",
+    "baseUrl": ".",
+    // this is required due to jkcfg port to typescript not being complete
+    "noImplicitAny": false,
+    "paths": {
+      "@k8s/*": [
+        "*"
+      ]
+    },
+    "plugins": [
+      { "transform": "typescript-transform-paths" }
+    ]
+  },
+  "exclude": [
+    "dist/"
+  ]
+}

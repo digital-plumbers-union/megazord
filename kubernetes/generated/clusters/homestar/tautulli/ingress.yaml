@@ -1,0 +1,20 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  name: tautulli
+  namespace: default
+spec:
+  rules:
+  - host: tautulli.liveworkloft.dev
+    http:
+      paths:
+      - backend:
+          serviceName: tautulli
+          servicePort: 8181
+        path: /
+  tls:
+  - hosts:
+    - tautulli.liveworkloft.dev
+    secretName: tautulli-ingress

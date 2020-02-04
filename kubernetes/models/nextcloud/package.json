@@ -1,0 +1,6 @@
+{
+  "name": "nextcloud",
+  "description": "Helm Chart configuration for NextCloud for Rancher's Helm Controller",
+  "main": "dist/index.js",
+  "version": "0.0.1"
+}

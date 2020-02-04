@@ -1,0 +1,6 @@
+{
+  "name": "logger",
+  "description": "Common Signale log wrapper so I stop repeating myself",
+  "main": "dist/index.js",
+  "version": "0.0.1"
+}

@@ -1,0 +1,58 @@
+{
+  "name": "megazord",
+  "version": "0.0.1",
+  "description": "TypeScript monorepo managed via Yarn Workspaces",
+  "repository": "https://github.com/booninite/megazord.git",
+  "author": "side.weidner@gmail.com",
+  "license": "MIT",
+  "private": true,
+  "workspaces": [
+    "pkg/*",
+    "telly/*"
+  ],
+  "devDependencies": {
+    "@types/lodash": "4.14.149",
+    "@types/node": "12",
+    "@types/signale": "1.2.1",
+    "ava": "2.4.0",
+    "ts-node": "8.6.1",
+    "tsconfig-paths": "3.9.0",
+    "ttypescript": "1.5.10",
+    "typescript": "3.7.4",
+    "typescript-transform-paths": "1.1.14"
+  },
+  "dependencies": {
+    "@jkcfg/kubernetes": "0.5.1",
+    "@jkcfg/std": "0.3.2",
+    "@kubernetes/client-node": "0.11.0",
+    "@sindresorhus/is": "1.2.0",
+    "container-image-builder": "3.2.0",
+    "convict": "5.2.0",
+    "lodash": "4.17.15",
+    "lodash-es": "4.17.15",
+    "prettier": "1.19.1",
+    "signale": "1.4.0",
+    "telegraf": "3.35.0",
+    "tslint": "5.20.1",
+    "tslint-config-prettier": "1.18.0",
+    "tslint-microsoft-contrib": "6.2.0"
+  },
+  "prettier": {
+    "singleQuote": true,
+    "trailingComma": "es5"
+  },
+  "ava": {
+    "files": [
+      "**/*.spec.ts",
+      "!node_modules"
+    ],
+    "compileEnhancements": false,
+    "extensions": [
+      "ts"
+    ],
+    "require": [
+      "ts-node/register",
+      "tsconfig-paths/register"
+    ]
+  }
+}
