@@ -15,12 +15,13 @@ spec:
     spec:
       containers:
       - envFrom:
-        - secretRef: monerod
+        - secretRef:
+            name: monerod
         image: xmrto/monero:latest
         imagePullPolicy: Always
         name: monerod
         ports:
-        - {}
+        - containerPort: 28081
         volumeMounts:
         - mountPath: /monero
           name: monerod

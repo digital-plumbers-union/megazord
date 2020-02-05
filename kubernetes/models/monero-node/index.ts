@@ -17,7 +17,7 @@ export const params = {
   name: name('monerod'),
   namespace: namespace('monerod'),
   image: image('xmrto/monero:latest'),
-  port: port(),
+  port: port(28081),
   ingress,
   persistence: persistence('120Gi'),
   sealedSecrets: Boolean('sealedsecrets', true),
@@ -74,9 +74,9 @@ const monerod = p => {
           resources: {
             requests: {
               storage: persistence.size,
-              storageClass: persistence.storageClass,
             },
           },
+          storageClassName: persistence.storageClassName,
         },
       }),
     },
@@ -104,7 +104,7 @@ const monerod = p => {
                       containerPort: port,
                     },
                   ],
-                  envFrom: [{ secretRef: name }],
+                  envFrom: [{ secretRef: { name } }],
                   // livenessProbe: {
                   //   failureThreshold: 10000,
                   //   httpGet: {
