@@ -115,6 +115,8 @@ const monerod = p => {
                     '0.0.0.0',
                     '--restricted-rpc',
                     '--confirm-external-bind',
+                    '--block-sync-size',
+                    '100',
                   ],
                   volumeMounts: [
                     {
@@ -123,6 +125,11 @@ const monerod = p => {
                     },
                   ],
                   envFrom: [{ secretRef: { name } }],
+                  resources: {
+                    limits: {
+                      memory: '2Gi',
+                    },
+                  },
                 },
               ],
               volumes: [

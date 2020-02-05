@@ -24,6 +24,8 @@ spec:
         - 0.0.0.0
         - --restricted-rpc
         - --confirm-external-bind
+        - --block-sync-size
+        - "100"
         command:
         - monerod
         envFrom:
@@ -34,6 +36,9 @@ spec:
         name: monerod
         ports:
         - containerPort: 18081
+        resources:
+          limits:
+            memory: 2Gi
         volumeMounts:
         - mountPath: /monero
           name: monerod
