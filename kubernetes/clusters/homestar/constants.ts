@@ -6,6 +6,7 @@ enum NodeNames {
   bane = 'bane',
 }
 
+// should this be in snippets since storageclasses may not be cluster specific
 enum StorageClasses {
   localPath = 'local-path',
 }

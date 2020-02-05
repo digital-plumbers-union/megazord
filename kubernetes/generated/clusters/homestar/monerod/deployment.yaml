@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: monerod
+  namespace: monerod
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: monerod
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: monerod
+    spec:
+      containers:
+      - envFrom:
+        - secretRef: monerod
+        image: xmrto/monero:latest
+        imagePullPolicy: Always
+        name: monerod
+        ports:
+        - {}
+        volumeMounts:
+        - mountPath: /monero
+          name: monerod
+      volumes:
+      - name: monerod
+        persistentVolumeClaim:
+          claimName: monerod
