@@ -12,7 +12,7 @@ spec:
       paths:
       - backend:
           serviceName: monerod
-          servicePort: 28081
+          servicePort: 18081
         path: /
   tls:
   - hosts:

@@ -6,7 +6,7 @@ metadata:
 spec:
   ports:
   - name: http
-    port: 28081
+    port: 18081
     protocol: TCP
   selector:
     app.kubernetes.io/name: monerod

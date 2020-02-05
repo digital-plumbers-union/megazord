@@ -16,10 +16,10 @@ import { port as svcPort } from '@k8s/lib/snippets/service';
 export const params = {
   name: name('monerod'),
   namespace: namespace('monerod'),
-  image: image('xmrto/monero:latest'),
-  port: port(28081),
+  image: image('xmrto/monero:v0.15.0.1'),
+  port: port(18081),
   ingress,
-  persistence: persistence('120Gi'),
+  persistence: persistence('100Gi'),
   sealedSecrets: Boolean('sealedsecrets', true),
   secrets: {
     walletPass: String('walletpass'),
@@ -59,18 +59,18 @@ const monerod = p => {
   const cmp = Component(name);
   const selector = appNameSelector(name) as { [prop: string]: string };
   enum secretNames {
-    walletPass = 'WALLET_PASSWD',
     rpcUser = 'RPC_USER',
-    rpcPass = 'RPC_PASS',
+    rpcPass = 'RPC_PASSWD',
   }
 
   cmp.add([
     {
       path: 'pvc.yaml',
       value: new k8s.core.v1.PersistentVolumeClaim(name, {
+        metadata: { namespace },
         // write a snippet for this
         spec: {
-          accessModes: ['ReadWriteMany'],
+          accessModes: ['ReadWriteOnce'],
           resources: {
             requests: {
               storage: persistence.size,
@@ -104,20 +104,21 @@ const monerod = p => {
                       containerPort: port,
                     },
                   ],
-                  envFrom: [{ secretRef: { name } }],
-                  // livenessProbe: {
-                  //   failureThreshold: 10000,
-                  //   httpGet: {
-                  //     path: '/',
-                  //     port: constants.port,
-                  //   },
-                  // },
+                  command: ['monerod'],
+                  args: [
+                    '--data-dir',
+                    '/monero',
+                    '--log-level',
+                    '3',
+                    '--non-interactive',
+                  ],
                   volumeMounts: [
                     {
                       mountPath: '/monero',
                       name,
                     },
                   ],
+                  envFrom: [{ secretRef: { name } }],
                 },
               ],
               volumes: [
@@ -147,7 +148,6 @@ const monerod = p => {
 
   // build secrets data object regardless of type
   const secretData = {
-    [secretNames.walletPass]: secrets.walletPass,
     [secretNames.rpcUser]: secrets.rpcUser,
     [secretNames.rpcPass]: secrets.rpcPass,
   };

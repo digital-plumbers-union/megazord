@@ -14,14 +14,22 @@ spec:
         app.kubernetes.io/name: monerod
     spec:
       containers:
-      - envFrom:
+      - args:
+        - --data-dir
+        - /monero
+        - --log-level
+        - "3"
+        - --non-interactive
+        command:
+        - monerod
+        envFrom:
         - secretRef:
             name: monerod
-        image: xmrto/monero:latest
+        image: xmrto/monero:v0.15.0.1
         imagePullPolicy: Always
         name: monerod
         ports:
-        - containerPort: 28081
+        - containerPort: 18081
         volumeMounts:
         - mountPath: /monero
           name: monerod
