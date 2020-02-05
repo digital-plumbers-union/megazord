@@ -109,8 +109,12 @@ const monerod = p => {
                     '--data-dir',
                     '/monero',
                     '--log-level',
-                    '3',
+                    '0',
                     '--non-interactive',
+                    '--rpc-bind-ip',
+                    '0.0.0.0',
+                    '--restricted-rpc',
+                    '--confirm-external-bind',
                   ],
                   volumeMounts: [
                     {
