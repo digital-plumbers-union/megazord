@@ -55,11 +55,26 @@ export const Component = (componentName: string, opts?: ComponentOptions) => {
 
   // add resources to the component, adds app labels
   const add = (obj: Value | Value[]) => {
+    const meta = {
+      metadata: {
+        labels,
+      },
+    };
     if (isArray(obj)) {
       assertIsArray(obj);
-      obj.forEach(r => resources.push(merge(r, labels)));
+      obj.forEach(r => {
+        const resource = {
+          ...r,
+          value: merge(r.value, meta),
+        };
+        resources.push(resource);
+      });
     } else {
-      resources.push(merge(obj, labels));
+      const resource = {
+        ...(obj as Value),
+        value: merge((obj as Value).value, meta),
+      };
+      resources.push(resource);
     }
   };
 
