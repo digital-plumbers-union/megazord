@@ -38,3 +38,5 @@ While writing configurations for `jk`...
 seal secrets raw for specific namespace, pipe them into files using sed or other text processing utilities
 
 import those files using `$INLINE_JSON` and `$INLINE_FILE` via typescript transform plugin that inlines those files.  this gets around reading issue during jkcfg generate.
+
+might be better to use jkcfg config files which are created using kubeseal?

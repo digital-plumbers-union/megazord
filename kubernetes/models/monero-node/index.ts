@@ -1,5 +1,5 @@
 import * as k8s from '@jkcfg/kubernetes/api';
-import { Boolean } from '@jkcfg/std/param';
+import { Boolean, String } from '@jkcfg/std/param';
 import { Component } from '@k8s/lib/component';
 import { appNameSelector } from '@k8s/lib/labels';
 import {
@@ -39,6 +39,10 @@ const monerod = p => {
     persistence: {
       ...params.persistence,
       ...p.persistence,
+    },
+    secrets: {
+      ...params.secrets,
+      ...p.secrets,
     },
   };
 
