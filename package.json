@@ -16,6 +16,7 @@
     "@types/signale": "1.2.1",
     "ava": "2.4.0",
     "ts-node": "8.6.1",
+    "ts-transformer-inline-file": "0.1.1",
     "tsconfig-paths": "3.9.0",
     "ttypescript": "1.5.10",
     "typescript": "3.7.4",

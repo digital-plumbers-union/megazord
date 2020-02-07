@@ -1,3 +1,3 @@
 import { homestar } from './homestar';
 
-export default [...homestar];
+export default homestar;

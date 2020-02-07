@@ -1,6 +1,6 @@
 import * as k8s from '@jkcfg/kubernetes/api';
 import { Boolean, String } from '@jkcfg/std/param';
-import { name, namespace } from '@k8s/lib/parameters';
+import { name, namespace, persistence } from '@k8s/lib/parameters';
 import { HelmChart } from '@k8s/lib/snippets/rancher-helm';
 
 // should each of these namespace themselves?
@@ -23,14 +23,11 @@ export const params = {
   host: String('host'),
   persistence: {
     enabled: Boolean('persistence.enabled', true),
-    storageClass: String('persistence.storageClass'),
-    size: String('persistence.size'),
+    ...persistence(),
   },
 };
 
 const nextcloud = p => {
-  // merge defaults from params with passed in values in case we call the func
-  // merge doesnt work for some reason, see note on bug report
   const config = {
     ...params,
     ...p,
