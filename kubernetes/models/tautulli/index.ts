@@ -1,8 +1,14 @@
 import * as k8s from '@jkcfg/kubernetes/api';
-import { Boolean, Object, String } from '@jkcfg/std/param';
+import { String } from '@jkcfg/std/param';
 import { Component } from '@k8s/lib/component';
 import { appNameSelector } from '@k8s/lib/labels';
-import { image, name, namespace } from '@k8s/lib/parameters';
+import {
+  image,
+  ingress,
+  name,
+  namespace,
+  persistence,
+} from '@k8s/lib/parameters';
 import { port as svcPort } from '@k8s/lib/snippets/service';
 
 const volumeName = 'config';
@@ -11,16 +17,8 @@ export const params = {
   name: name('tautulli'),
   namespace: namespace('default'),
   image: image('tautulli/tautulli'),
-  ingress: {
-    enabled: Boolean('ingress.enabled', false),
-    annotations: Object('ingress.annotations', {}),
-    tls: Object('ingress.tls', []),
-    host: String('host'),
-  },
-  persistence: {
-    storageClass: String('persistence.storageClass'),
-    size: String('persistence.size', '1Gi'),
-  },
+  ingress,
+  persistence: persistence('1Gi'),
   timezone: String('timezone', 'EST5EDT'),
 };
 

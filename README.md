@@ -1,3 +1,5 @@
+# megazord
+
 - basic rollup config
   - rollup still a pain in the ass because of various setup requied to move from commonjs to esm -- ts-node also only works with the value set to commonjs
 - add signale log wrapper
