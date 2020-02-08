@@ -4,13 +4,14 @@ import { ProductionAcme, StagingAcme } from '@k8s/lib/snippets/cluster-issuer';
 import CertManager from '@k8s/models/cert-manager';
 import Monero from '@k8s/models/monero-node';
 import NextCloud from '@k8s/models/nextcloud';
+import NfsServer from '@k8s/models/nfs-server';
 import Tautulli from '@k8s/models/tautulli';
 import { $INLINE_JSON } from 'ts-transformer-inline-file';
 import constants from './constants';
 
 const cluster = async () => {
   const moneroSecrets = $INLINE_JSON('./sealed-secret-data/monero.json');
-  const { letsencrypt, hostname } = constants;
+  const { letsencrypt, hostname, nodes } = constants;
   const { issuers, email } = letsencrypt;
   const issuerAnno = {
     [CertManagerAnnotations.ClusterIssuer]: issuers.prod.name,
@@ -67,8 +68,17 @@ const cluster = async () => {
     },
   });
 
+  const nfs = NfsServer({
+    image: 'shimmerjs/nfs-alpine-server:arm',
+    hostPath: '/media',
+    nodeSelector: {
+      'k3s.io/hostname': nodes.names.atomAnt,
+    },
+  });
+
   // handle this by exporting a function as default
   const manifests = [
+    ...nfs,
     ...tautulli,
     ...nextcloud,
     ...monero,

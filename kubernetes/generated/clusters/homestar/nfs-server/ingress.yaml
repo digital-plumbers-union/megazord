@@ -1,0 +1,16 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  labels:
+    app.kubernetes.io/name: nfs-server
+  name: nfs-server
+  namespace: default
+spec:
+  rules:
+  - host: nfs.homestar.local
+    http:
+      paths:
+      - backend:
+          serviceName: nfs-server
+          servicePort: 2049
+        path: /

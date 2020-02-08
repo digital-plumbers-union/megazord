@@ -1,0 +1,6 @@
+{
+  "name": "nfs-server",
+  "description": "Kubernetes configuration for a nfs server, in @jkcfg",
+  "main": "dist/index.js",
+  "version": "0.0.1"
+}

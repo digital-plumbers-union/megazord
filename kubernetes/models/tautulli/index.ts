@@ -92,7 +92,7 @@ const tautulli = p => {
             containers: [
               {
                 name,
-                image: image,
+                image,
                 imagePullPolicy: 'Always',
                 ports: [
                   {

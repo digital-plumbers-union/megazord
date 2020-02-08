@@ -3,6 +3,8 @@ kind: Ingress
 metadata:
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
+  labels:
+    app.kubernetes.io/name: monerod
   name: monerod
   namespace: monerod
 spec:
