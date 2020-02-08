@@ -1,5 +1,4 @@
 import * as k8s from '@jkcfg/kubernetes/api';
-import { print } from '@jkcfg/std';
 import { Number, Object, String } from '@jkcfg/std/param';
 import { Component } from '@k8s/lib/component';
 import { appNameSelector } from '@k8s/lib/labels';
@@ -16,7 +15,6 @@ export const params = {
   serviceType: String('serviceType', 'LoadBalancer'),
   hostPath: String('hostPath'),
   nodeSelector: Object('nodeSelector', {}),
-  host: String('host', 'nfs.homestar.local'),
   replicas: Number('replicas', 3),
 };
 
@@ -30,14 +28,11 @@ const nfsServer = p => {
     port,
     hostPath,
     nodeSelector,
-    host,
     serviceType,
     replicas,
   } = config;
   const cmp = Component(name);
   const selector = appNameSelector(name);
-
-  print(config, {});
 
   const svc = {
     path: 'service.yaml',
@@ -102,32 +97,7 @@ const nfsServer = p => {
     }),
   };
 
-  const ing = {
-    path: 'ingress.yaml',
-    value: new k8s.extensions.v1beta1.Ingress(name, {
-      metadata: { namespace },
-      spec: {
-        rules: [
-          {
-            host,
-            http: {
-              paths: [
-                {
-                  path: '/',
-                  backend: {
-                    serviceName: name,
-                    servicePort: port,
-                  },
-                },
-              ],
-            },
-          },
-        ],
-      },
-    }),
-  };
-
-  cmp.add([svc, deploy, ing]);
+  cmp.add([svc, deploy]);
 
   return cmp.finalize();
 };
