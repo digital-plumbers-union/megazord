@@ -24,7 +24,7 @@ export default {
       [NodeNames.ellie]: '192.168.1.126',
       [NodeNames.bane]: '192.168.1.83',
       [NodeNames.rdj]: '192.168.1.67',
-      [NodeNames.atomAnt]: '192.168.1.66',
+      [NodeNames.atomAnt]: '192.168.1.16',
     },
   },
   router: {
