@@ -4,11 +4,9 @@ enum NodeNames {
   rdj = 'rdj',
   atomAnt = 'atom-ant',
   bane = 'bane',
-}
-
-// should this be in snippets since storageclasses may not be cluster specific
-enum StorageClasses {
-  localPath = 'local-path',
+  wendy = 'wendy',
+  ripley = 'ripley',
+  macready = 'macready',
 }
 
 export default {
@@ -16,7 +14,6 @@ export default {
     internal: 'homestar.local',
     external: 'liveworkloft.dev',
   },
-  storageClasses: StorageClasses,
   nodes: {
     names: NodeNames,
     ips: {
@@ -25,6 +22,9 @@ export default {
       [NodeNames.bane]: '192.168.1.83',
       [NodeNames.rdj]: '192.168.1.67',
       [NodeNames.atomAnt]: '192.168.1.16',
+      [NodeNames.ripley]: '192.168.1.18',
+      [NodeNames.macready]: '192.168.1.109',
+      [NodeNames.wendy]: '192.168.1.217',
     },
   },
   router: {

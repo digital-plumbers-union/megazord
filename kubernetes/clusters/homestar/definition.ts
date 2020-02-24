@@ -78,10 +78,10 @@ const cluster = async () => {
 
   // handle this by exporting a function as default
   const manifests = [
-    ...nfs,
-    ...tautulli,
+    ...nfs.resources,
+    ...tautulli.resources,
     ...nextcloud,
-    ...monero,
+    ...monero.resources,
     ...CertManager,
     {
       path: 'lets-encrypt-staging.yaml',
@@ -98,6 +98,9 @@ const cluster = async () => {
         'prod-issuer-account-key',
         email
       ),
+    },
+    {
+      path: 'automation/',
     },
   ].map(value => ({ ...value, path: join('clusters/homestar', value.path) }));
 

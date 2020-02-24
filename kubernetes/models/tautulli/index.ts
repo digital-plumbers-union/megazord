@@ -8,13 +8,18 @@ import {
   name,
   namespace,
   persistence,
+  port,
 } from '@k8s/lib/parameters';
+import Container from '@k8s/lib/snippets/container';
+import Deployment from '@k8s/lib/snippets/deployment';
+import { PVC } from '@k8s/lib/snippets/pvc';
 import { port as svcPort } from '@k8s/lib/snippets/service';
-
-const volumeName = 'config';
+import addNamespace from '@k8s/mixins/namespace';
+import { merge } from 'lodash-es';
 
 export const params = {
   name: name('tautulli'),
+  port: port(8181),
   namespace: namespace('default'),
   image: image('tautulli/tautulli'),
   ingress,
@@ -22,126 +27,66 @@ export const params = {
   timezone: String('timezone', 'EST5EDT'),
 };
 
-const tautulli = p => {
-  // merge doesnt work for some reason, see note on bug report
-  const config = {
-    ...params,
-    ...p,
-    ingress: {
-      ...params.ingress,
-      ...p.ingress,
-    },
-    persistence: {
-      ...params.persistence,
-      ...p.persistence,
-    },
-  };
-  const { name, persistence, ingress, namespace, image, timezone } = config;
+const tautulli = (p: Partial<typeof params>) => {
+  const {
+    name,
+    port,
+    persistence,
+    ingress,
+    namespace,
+    image,
+    timezone,
+  } = merge(params, p);
+
   const cmp = Component(name);
   const selector = appNameSelector(name);
 
-  const port = 8181;
+  const pvc = PVC(name, {
+    size: persistence.size!,
+    storageClass: persistence.storageClass,
+  });
 
-  const pvc = {
-    path: 'pvc.yaml',
-    value: new k8s.core.v1.PersistentVolumeClaim(name, {
-      metadata: { namespace },
-      spec: {
-        accessModes: ['ReadWriteOnce'],
-        resources: {
-          requests: {
-            storage: persistence.size,
-          },
-        },
-        storageClassName: persistence.storageClass,
+  const svc = new k8s.core.v1.Service(name, {
+    spec: {
+      ports: [svcPort(port)],
+      // default behavior of Component is to add standard kube app label with
+      // string provided, so we can rely on that for the service selector
+      selector,
+    },
+  });
+
+  const deploy = Deployment(name, { labels: selector });
+  deploy.addVolume(name);
+  const serverContainer = Container({
+    name,
+    image,
+    port,
+    env: {
+      TZ: timezone,
+    },
+    pvcs: [
+      {
+        mountPath: '/config',
+        name,
       },
-    }),
+    ],
+  });
+  serverContainer.livenessProbe = {
+    failureThreshold: 10000,
+    httpGet: {
+      path: '/',
+      port,
+    },
   };
+  deploy.addContainer(serverContainer);
 
-  if (persistence.storageClass) {
-    pvc.value.spec!.storageClassName = persistence.storageClass;
-  }
-
-  const svc = {
-    path: 'service.yaml',
-    value: new k8s.core.v1.Service(name, {
-      metadata: { namespace },
-      spec: {
-        ports: [svcPort(port)],
-        // default behavior of Component is to add standard kube app label with
-        // string provided, so we can rely on that for the service selector
-        selector,
-      },
-    }),
-  };
-
-  const deploy = {
-    path: 'deployment.yaml',
-    value: new k8s.apps.v1.Deployment(name, {
-      metadata: { namespace },
-      spec: {
-        replicas: 1,
-        selector: {
-          matchLabels: selector,
-        },
-        template: {
-          metadata: {
-            labels: selector,
-          },
-          spec: {
-            containers: [
-              {
-                name,
-                image,
-                imagePullPolicy: 'Always',
-                ports: [
-                  {
-                    containerPort: port,
-                  },
-                ],
-                env: [
-                  {
-                    // timezone
-                    name: 'TZ',
-                    value: timezone,
-                  },
-                ],
-                livenessProbe: {
-                  failureThreshold: 10000,
-                  httpGet: {
-                    path: '/',
-                    port,
-                  },
-                },
-                volumeMounts: [
-                  {
-                    mountPath: '/config',
-                    name: volumeName,
-                  },
-                ],
-              },
-            ],
-            volumes: [
-              {
-                name: volumeName,
-                persistentVolumeClaim: { claimName: name },
-              },
-            ],
-          },
-        },
-      },
-    }),
-  };
-
-  cmp.add([pvc, deploy, svc]);
+  const namespacedResources: any[] = [pvc, deploy.resource, svc];
 
   if (ingress.enabled) {
-    cmp.add({
-      path: 'ingress.yaml',
-      value: new k8s.extensions.v1beta1.Ingress(name, {
+    namespacedResources.push(
+      new k8s.extensions.v1beta1.Ingress(name, {
         metadata: {
-          namespace,
-          annotations: ingress.annotations,
+          annotations: ingress.annotations as { [prop: string]: string },
         },
         spec: {
           rules: [
@@ -160,13 +105,17 @@ const tautulli = p => {
               },
             },
           ],
-          tls: ingress.tls,
+          tls: ingress.tls as k8s.extensions.v1beta1.IngressTLS[],
         },
-      }),
-    });
+      })
+    );
   }
 
-  return cmp.finalize();
+  cmp.add([pvc, deploy.resource, svc].map(r => addNamespace(r, namespace)));
+
+  if (namespace !== 'default') cmp.add(new k8s.core.v1.Namespace(namespace));
+
+  return cmp;
 };
 
 // export finalized array that can be used by jkcfg directly if i want

@@ -1,7 +1,8 @@
-import { Value } from '@jkcfg/std/cmd/generate';
-import { merge } from '@jkcfg/std/merge';
+import { assertKubeObj, assertKubeObjArray } from '@k8s/lib/assertions';
 import { AppLabels } from '@k8s/lib/labels';
+import { KubernetesObject } from '@k8s/lib/models';
 import { isArray } from 'lodash-es';
+import addLabels from '../mixins/labels';
 
 export interface ComponentOptions {
   // taken from https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/#labels
@@ -18,15 +19,9 @@ export interface ComponentOptions {
   };
 }
 
-function assertIsArray(val: any): asserts val is Array<Value> {
-  if (!isArray(val)) {
-    throw new Error(`${val} is expected to be an array`);
-  }
-}
-
 export const Component = (componentName: string, opts?: ComponentOptions) => {
   const { appLabels, otherLabels } = opts || {};
-  const resources: Value[] = [];
+  const resources: KubernetesObject[] = [];
   const labels = {
     // always have the name because it is given to us
     [AppLabels.Name]: componentName,
@@ -40,48 +35,21 @@ export const Component = (componentName: string, opts?: ComponentOptions) => {
     labels[AppLabels[capitalized]] = appLabels[key];
   }
 
-  // easily generate resource names from base name provided
-  const name = (s?: string) => (s ? `${componentName}-${s}` : componentName);
-
-  // contextualize files with base name
-  const finalize = () => {
-    return resources.map(r => {
-      return {
-        ...r,
-        path: `${componentName}/${r.path}`,
-      };
-    });
-  };
-
   // add resources to the component, adds app labels
-  const add = (obj: Value | Value[]) => {
-    const meta = {
-      metadata: {
-        labels,
-      },
-    };
+  const add = (obj: KubernetesObject | KubernetesObject[]) => {
     if (isArray(obj)) {
-      assertIsArray(obj);
-      obj.forEach(r => {
-        const resource = {
-          ...r,
-          value: merge(r.value, meta),
-        };
-        resources.push(resource);
-      });
+      assertKubeObjArray(obj);
+      // why doesnt obj.map(addLabels(labels)) work?
+      resources.push(...obj.map(o => addLabels(o, labels)));
     } else {
-      const resource = {
-        ...(obj as Value),
-        value: merge((obj as Value).value, meta),
-      };
-      resources.push(resource);
+      assertKubeObj(obj);
+      resources.push(addLabels(obj, labels));
     }
   };
 
   return {
-    name,
     componentName,
-    finalize,
+    resources,
     add,
   } as const;
 };

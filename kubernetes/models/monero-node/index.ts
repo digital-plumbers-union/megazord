@@ -10,8 +10,14 @@ import {
   persistence,
   port,
 } from '@k8s/lib/parameters';
+import container from '@k8s/lib/snippets/container';
+import Deployment from '@k8s/lib/snippets/deployment';
+import { metaLabels } from '@k8s/lib/snippets/label-selectors';
+import { PVC } from '@k8s/lib/snippets/pvc';
 import { sealedSecret } from '@k8s/lib/snippets/sealed-secret';
 import { port as svcPort } from '@k8s/lib/snippets/service';
+import addNamespace from '@k8s/mixins/namespace';
+import { merge } from 'lodash-es';
 
 export const params = {
   name: name('monerod'),
@@ -28,24 +34,7 @@ export const params = {
   },
 };
 
-const monerod = p => {
-  const config = {
-    ...params,
-    ...p,
-    ingress: {
-      ...params.ingress,
-      ...p.ingress,
-    },
-    persistence: {
-      ...params.persistence,
-      ...p.persistence,
-    },
-    secrets: {
-      ...params.secrets,
-      ...p.secrets,
-    },
-  };
-
+const monerod = (p: Partial<typeof params>) => {
   const {
     name,
     namespace,
@@ -55,180 +44,125 @@ const monerod = p => {
     image,
     sealedSecrets,
     secrets,
-  } = config;
+  } = merge(params, p);
   const cmp = Component(name);
-  const selector = appNameSelector(name) as { [prop: string]: string };
-  enum secretNames {
-    rpcUser = 'RPC_USER',
-    rpcPass = 'RPC_PASSWD',
+
+  const selector = appNameSelector(name);
+  const secretsEnabled =
+    secrets.rpcPass || secrets.rpcUser || secrets.walletPass;
+
+  const namespacedResources: any[] = [
+    PVC(name, {
+      // TODO: persistence.size has to be NonNulled via `!`
+      size: persistence.size!,
+      storageClass: persistence.storageClass,
+    }),
+    new k8s.core.v1.Service(name, {
+      spec: {
+        ports: [svcPort(port)],
+        // default behavior of Component is to add standard kube app label with
+        // string provided, so we can rely on that for the service selector
+        selector,
+      },
+    }),
+  ];
+
+  if (secretsEnabled) {
+    const secretData: { [prop: string]: string } = {};
+    for (const secretName in secrets) {
+      if (secrets[secretName] !== undefined) {
+        secretData[secretName] = secrets[secretName];
+      }
+    }
+
+    namespacedResources.push(
+      sealedSecrets
+        ? sealedSecret(name, {
+            encryptedData: secretData,
+            // ensures result secret is discoverable via app label
+            // until sealed-secret module ensures secrets inherit labels
+            template: { ...metaLabels(selector) },
+          })
+        : new k8s.core.v1.Secret(name, { stringData: secretData })
+    );
   }
 
-  cmp.add([
-    {
-      path: 'pvc.yaml',
-      value: new k8s.core.v1.PersistentVolumeClaim(name, {
-        metadata: { namespace },
-        // write a snippet for this
-        spec: {
-          accessModes: ['ReadWriteOnce'],
-          resources: {
-            requests: {
-              storage: persistence.size,
-            },
-          },
-          storageClassName: persistence.storageClassName,
-        },
-      }),
-    },
-    {
-      path: 'deployment.yaml',
-      value: new k8s.apps.v1.Deployment(name, {
-        metadata: { namespace },
-        spec: {
-          replicas: 1,
-          selector: {
-            matchLabels: selector,
-          },
-          template: {
-            metadata: {
-              labels: selector,
-            },
-            spec: {
-              containers: [
-                {
-                  name,
-                  image,
-                  imagePullPolicy: 'Always',
-                  ports: [
-                    {
-                      containerPort: port,
-                    },
-                  ],
-                  command: ['monerod'],
-                  args: [
-                    '--data-dir',
-                    '/monero',
-                    '--log-level',
-                    '0',
-                    '--non-interactive',
-                    '--rpc-bind-ip',
-                    '0.0.0.0',
-                    '--restricted-rpc',
-                    '--confirm-external-bind',
-                    '--block-sync-size',
-                    '100',
-                  ],
-                  volumeMounts: [
-                    {
-                      mountPath: '/monero',
-                      name,
-                    },
-                  ],
-                  envFrom: [{ secretRef: { name } }],
-                  resources: {
-                    limits: {
-                      memory: '2Gi',
-                    },
-                  },
-                },
-              ],
-              volumes: [
-                {
-                  name,
-                  persistentVolumeClaim: { claimName: name },
-                },
-              ],
-            },
-          },
-        },
-      }),
-    },
-    {
-      path: 'service.yaml',
-      value: new k8s.core.v1.Service(name, {
-        metadata: { namespace },
-        spec: {
-          ports: [svcPort(port)],
-          // default behavior of Component is to add standard kube app label with
-          // string provided, so we can rely on that for the service selector
-          selector,
-        },
-      }),
-    },
-  ]);
-
-  // build secrets data object regardless of type
-  const secretData = {
-    [secretNames.rpcUser]: secrets.rpcUser,
-    [secretNames.rpcPass]: secrets.rpcPass,
-  };
-
-  if (sealedSecrets) {
-    cmp.add({
-      path: 'sealed-secrets.yaml',
-      value: sealedSecret({
+  const deploy = Deployment(name, { labels: selector });
+  deploy.addVolume(name);
+  const moneroContainer = container({
+    name,
+    image,
+    port,
+    pvcs: [
+      {
         name,
-        namespace,
-        encryptedData: secretData,
-        template: {
-          metadata: {
-            labels: {
-              ...selector,
+        mountPath: '/monero',
+      },
+    ],
+    command: ['monerod'],
+    args: [
+      '--data-dir',
+      '/monero',
+      '--log-level',
+      '0',
+      '--non-interactive',
+      '--rpc-bind-ip',
+      '0.0.0.0',
+      '--restricted-rpc',
+      '--confirm-external-bind',
+      '--block-sync-size',
+      '100',
+    ],
+    resources: {
+      limits: {
+        memory: '2Gi',
+      },
+    },
+  });
+  if (secretsEnabled) moneroContainer.envFrom = [{ secretRef: { name } }];
+  deploy.addContainer(moneroContainer);
+  namespacedResources.push(deploy.resource);
+
+  // ingress
+  if (ingress.enabled) {
+    const ing = new k8s.extensions.v1beta1.Ingress(name, {
+      metadata: {
+        // TODO: handle ingress.annotations without casting
+        annotations: ingress.annotations as { [prop: string]: string },
+      },
+      spec: {
+        rules: [
+          {
+            host: ingress.host,
+            http: {
+              paths: [
+                {
+                  path: '/',
+                  backend: {
+                    serviceName: name,
+                    servicePort: port,
+                  },
+                },
+              ],
             },
           },
-        },
-      }),
+        ],
+        // TODO: handle ingress.tls without casting
+        tls: ingress.tls as k8s.extensions.v1beta1.IngressTLS[],
+      },
     });
-  } else {
-    cmp.add({
-      path: 'secrets.yaml',
-      value: new k8s.core.v1.Secret(name, {
-        metadata: { namespace },
-        stringData: secretData,
-      }),
-    });
+    namespacedResources.push(ing);
   }
 
+  // add namespace to namespaced resources and add them to component
+  cmp.add(namespacedResources.map(r => addNamespace(r, namespace)));
+
+  // ensure namespace is created if we arent installing to default ns
   if (namespace !== 'default') {
-    cmp.add({
-      path: 'namespace.yaml',
-      value: new k8s.core.v1.Namespace(name),
-    });
+    cmp.add(new k8s.core.v1.Namespace(name));
   }
 
-  if (ingress.enabled) {
-    cmp.add({
-      path: 'ingress.yaml',
-      // todo: create higher-level ingress snippet
-      value: new k8s.extensions.v1beta1.Ingress(name, {
-        metadata: {
-          namespace,
-          annotations: ingress.annotations,
-        },
-        spec: {
-          rules: [
-            {
-              host: ingress.host,
-              http: {
-                paths: [
-                  {
-                    path: '/',
-                    backend: {
-                      serviceName: name,
-                      servicePort: port,
-                    },
-                  },
-                ],
-              },
-            },
-          ],
-          tls: ingress.tls,
-        },
-      }),
-    });
-  }
-
-  return cmp.finalize();
+  return cmp;
 };
 
 export default monerod;

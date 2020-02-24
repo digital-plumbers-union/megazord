@@ -1,3 +1,5 @@
+import { Labels } from './models';
+
 /**
  * Taken from https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/#labels
  */
@@ -14,7 +16,9 @@ export enum AppLabels {
  * Create standard app name label object to use for selectors.
  * @param name App name
  */
-export const appNameSelector = (name: string) => ({ [AppLabels.Name]: name });
+export const appNameSelector = (name: string): Labels => ({
+  [AppLabels.Name]: name,
+});
 
 /**
  * Taken from

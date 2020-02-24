@@ -1,13 +1,17 @@
 import { Boolean, Number, Object, String } from '@jkcfg/std/param';
-import constants from '@k8s/clusters/homestar/constants';
+import { StorageClasses } from '@k8s/lib/models';
 
-const { storageClasses } = constants;
-
-export const namespace = (d?: string) => String('namespace', d);
 export const serviceAccount = (d?: string) => String('sa', d);
-export const name = (d?: string) => String('name', d);
-export const image = (d?: string) => String('image', d);
-export const port = (d?: number) => Number('port', d);
+
+// TODO:
+// come up with more elegant types, rather than
+// using `!` to make result of $ParameterType() NonNullable
+
+// These values always have defaults provided, so we modify their types
+export const name = (d: string) => String('name', d)!;
+export const namespace = (d = 'default') => String('namespace', d)!;
+export const image = (d: string) => String('image', d)!;
+export const port = (d: number) => Number('port', d)!;
 
 export const ingress = {
   enabled: Boolean('ingress.enabled', false),
@@ -23,8 +27,8 @@ export const ingress = {
  */
 export const persistence = (
   size?: string,
-  storageClass = storageClasses.localPath
+  storageClass = StorageClasses.localPath
 ) => ({
-  storageClass: String('persistence.storageClass', storageClass),
+  storageClass: String('persistence.storageClass', storageClass)!,
   size: String('persistence.size', size),
 });

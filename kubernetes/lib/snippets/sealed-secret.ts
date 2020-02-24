@@ -1,9 +1,9 @@
+import { merge } from 'lodash-es';
+
 const apiVersion = 'bitnami.com/v1alpha1';
 const kind = 'SealedSecret';
 
 interface SealedSecretOptions {
-  name: string;
-  namespace: string;
   encryptedData: any;
   template: {
     type?: 'string';
@@ -16,29 +16,20 @@ interface SealedSecretOptions {
 
 const defaults = {
   encryptedData: {},
-  namespace: 'default',
   template: {
     // todo: secret type enum
     type: 'Opaque',
   },
 };
 
-export const sealedSecret = (opts: SealedSecretOptions) => {
-  const config = {
-    ...defaults,
-    ...opts,
-    template: {
-      ...defaults.template,
-      ...opts.template,
-    },
-  };
-
-  const { encryptedData, template, name, namespace } = config;
+// TODO: have secret inherit labels of sealedsecret regardless
+export const sealedSecret = (name: string, opts: SealedSecretOptions) => {
+  const { encryptedData, template } = merge(defaults, opts);
 
   return {
     kind,
     apiVersion,
-    metadata: { name, namespace },
+    metadata: { name },
     spec: { encryptedData, template },
   };
 };

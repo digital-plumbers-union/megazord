@@ -2,24 +2,27 @@ import * as k8s from '@jkcfg/kubernetes/api';
 import { Number, Object, String } from '@jkcfg/std/param';
 import { Component } from '@k8s/lib/component';
 import { appNameSelector } from '@k8s/lib/labels';
+import { VolumeTypes } from '@k8s/lib/models';
 import { image, name, namespace, port } from '@k8s/lib/parameters';
+import Container from '@k8s/lib/snippets/container';
+import Deployment from '@k8s/lib/snippets/deployment';
 import { port as svcPort } from '@k8s/lib/snippets/service';
+import addNamespace from '@k8s/mixins/namespace';
 import { merge } from 'lodash-es';
 
 export const params = {
   name: name('nfs-server'),
   namespace: namespace('default'),
   image: image('itsthenetwork/nfs-server-alpine:latest-arm'),
-  clusterIP: String('clusterIP', '10.43.217.217'),
+  clusterIP: String('clusterIP', '10.43.217.217')!,
   port: port(2049),
-  serviceType: String('serviceType', 'LoadBalancer'),
+  serviceType: String('serviceType', 'LoadBalancer')!,
   hostPath: String('hostPath'),
   nodeSelector: Object('nodeSelector', {}),
-  replicas: Number('replicas', 3),
+  replicas: Number('replicas', 1)!,
 };
 
-const nfsServer = p => {
-  const config = merge(params, p);
+const nfsServer = (p: Partial<typeof params>) => {
   const {
     name,
     namespace,
@@ -30,76 +33,58 @@ const nfsServer = p => {
     nodeSelector,
     serviceType,
     replicas,
-  } = config;
+  } = merge(params, p);
   const cmp = Component(name);
   const selector = appNameSelector(name);
 
-  const svc = {
-    path: 'service.yaml',
-    value: new k8s.core.v1.Service(name, {
-      metadata: { namespace },
-      spec: {
-        clusterIP,
-        ports: [svcPort(port)],
-        selector,
-        type: serviceType,
-      },
-    }),
+  const svc = new k8s.core.v1.Service(name, {
+    spec: {
+      clusterIP,
+      ports: [svcPort(port)],
+      selector,
+      type: serviceType,
+    },
+  });
+
+  const deploy = Deployment(name, { labels: selector, replicas });
+  const volumeName = 'host-path';
+  const mountPath = '/share';
+  // TODO: make `type: 'Directory'` default
+  deploy.addVolume(volumeName, VolumeTypes.hostPath, {
+    path: hostPath,
+    type: 'Directory',
+  });
+  const serverContainer = Container({
+    name,
+    image,
+    port,
+    env: {
+      SHARED_DIRECTORY: mountPath,
+    },
+  });
+  // TODO: container cant handle non-PVC volumeMounts
+  serverContainer.volumeMounts = [
+    {
+      mountPath,
+      name: volumeName,
+    },
+  ];
+  serverContainer.securityContext = {
+    capabilities: {
+      add: ['SYS_ADMIN', 'SETPCAP'],
+    },
   };
+  deploy.addContainer(serverContainer);
+  if (nodeSelector) {
+    // TODO: more poor types from parameters
+    deploy.resource.spec!.template!.spec!.nodeSelector = nodeSelector as {
+      [prop: string]: string;
+    };
+  }
 
-  const deploy = {
-    path: 'deployment.yaml',
-    value: new k8s.apps.v1.Deployment(name, {
-      metadata: { namespace },
-      spec: {
-        replicas,
-        selector: {
-          matchLabels: selector,
-        },
-        template: {
-          metadata: {
-            labels: selector,
-          },
-          spec: {
-            nodeSelector,
-            containers: [
-              {
-                name,
-                image,
-                imagePullPolicy: 'Always',
-                ports: [{ containerPort: port }],
-                securityContext: {
-                  capabilities: {
-                    add: ['SYS_ADMIN', 'SETPCAP'],
-                  },
-                },
-                env: [{ name: 'SHARED_DIRECTORY', value: '/share' }],
-                volumeMounts: [
-                  {
-                    mountPath: '/share',
-                    name: 'host-volume',
-                  },
-                ],
-              },
-            ],
-            volumes: [
-              {
-                name: 'host-volume',
-                hostPath: {
-                  path: hostPath,
-                  type: 'Directory',
-                },
-              },
-            ],
-          },
-        },
-      },
-    }),
-  };
+  cmp.add([svc, deploy.resource].map(r => addNamespace(r, namespace)));
 
-  cmp.add([svc, deploy]);
-
-  return cmp.finalize();
+  return cmp;
 };
 
 export default nfsServer;
