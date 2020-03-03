@@ -1,4 +1,5 @@
-import { join } from '@jkcfg/std/fs';
+import { valuesForGenerate } from '@jkcfg/kubernetes/generate';
+import { print } from '@jkcfg/std';
 import CertManagerAnnotations from '@k8s/lib/snippets/cert-manager-annotations';
 import { ProductionAcme, StagingAcme } from '@k8s/lib/snippets/cluster-issuer';
 import CertManager from '@k8s/models/cert-manager';
@@ -7,7 +8,7 @@ import NextCloud from '@k8s/models/nextcloud';
 import NfsServer from '@k8s/models/nfs-server';
 import Tautulli from '@k8s/models/tautulli';
 import { $INLINE_JSON } from 'ts-transformer-inline-file';
-import constants from './constants';
+import { constants } from './constants';
 
 const cluster = async () => {
   const moneroSecrets = $INLINE_JSON('./sealed-secret-data/monero.json');
@@ -72,37 +73,26 @@ const cluster = async () => {
     image: 'shimmerjs/nfs-alpine-server:arm',
     hostPath: '/media',
     nodeSelector: {
-      'k3s.io/hostname': nodes.names.atomAnt,
+      'k3s.io/hostname': nodes.names.ripley,
     },
   });
 
-  // handle this by exporting a function as default
-  const manifests = [
+  const resources = [
     ...nfs.resources,
     ...tautulli.resources,
     ...nextcloud,
     ...monero.resources,
     ...CertManager,
-    {
-      path: 'lets-encrypt-staging.yaml',
-      value: StagingAcme(
-        issuers.staging.name,
-        'staging-issuer-account-key',
-        email
-      ),
-    },
-    {
-      path: 'lets-encrypt-prod.yaml',
-      value: ProductionAcme(
-        issuers.prod.name,
-        'prod-issuer-account-key',
-        email
-      ),
-    },
-    {
-      path: 'automation/',
-    },
-  ].map(value => ({ ...value, path: join('clusters/homestar', value.path) }));
+    StagingAcme(issuers.staging.name, 'staging-issuer-account-key', email),
+    ProductionAcme(issuers.prod.name, 'prod-issuer-account-key', email),
+  ];
+
+  print(resources, {});
+
+  // handle this by exporting a function as default
+  const manifests = valuesForGenerate(resources, {
+    prefix: 'clusters/homestar',
+  });
 
   return manifests;
 };

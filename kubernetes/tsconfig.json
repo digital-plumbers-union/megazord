@@ -1,12 +1,12 @@
 {
   "extends": "../config/tsconfig/tsconfig.json",
   "compilerOptions": {
+    "target": "ES2017",
     "outDir": "dist/",
     "declaration": false,
-    "sourceMap": false,
+    "sourceMap": true,
     "module": "es6",
     "baseUrl": ".",
-    "resolveJsonModule": true,
     // this is required due to jkcfg port to typescript not being complete
     "noImplicitAny": false,
     "paths": {
@@ -14,6 +14,7 @@
         "*"
       ]
     },
+    "strictNullChecks": true,
     "plugins": [
       { "transform": "typescript-transform-paths" },
       { "transform": "ts-transformer-inline-file/transformer" }

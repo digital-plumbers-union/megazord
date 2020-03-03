@@ -1,6 +1,15 @@
-import { Labels } from '@k8s/lib/models';
-
-export const selector = (labels: Labels) => ({ selector: labels });
+/**
+ * Boilerplate reducer for label selector specs, spread the result of this into
+ * a spec or other top-level object field.
+ * @param labels
+ * @param matchLabels Nests matchLabels field in selector object
+ */
+export const selector = (
+  labels: { [prop: string]: string },
+  matchLabels?: boolean
+) => ({
+  selector: matchLabels ? { matchLabels: labels } : labels,
+});
 
 /**
  * Returns fully formed metadata object with
@@ -9,4 +18,6 @@ export const selector = (labels: Labels) => ({ selector: labels });
  * writing a full metadata object
  * @param labels
  */
-export const metaLabels = (labels: Labels) => ({ metadata: labels });
+export const metaLabels = (labels: { [prop: string]: string }) => ({
+  metadata: { labels },
+});

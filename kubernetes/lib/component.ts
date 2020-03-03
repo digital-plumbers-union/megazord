@@ -1,8 +1,8 @@
 import { assertKubeObj, assertKubeObjArray } from '@k8s/lib/assertions';
 import { AppLabels } from '@k8s/lib/labels';
 import { KubernetesObject } from '@k8s/lib/models';
+import addLabels from '@k8s/mixins/labels';
 import { isArray } from 'lodash-es';
-import addLabels from '../mixins/labels';
 
 export interface ComponentOptions {
   // taken from https://kubernetes.io/docs/concepts/overview/working-with-objects/common-labels/#labels

@@ -71,7 +71,7 @@ const nfsServer = (p: Partial<typeof params>) => {
   ];
   serverContainer.securityContext = {
     capabilities: {
-      add: ['SYS_ADMIN', 'SETPCAP'],
+      add: ['SYS_ADMIN', 'SETPCAP', 'SYS_RESOURCE', 'DAC_READ_SEARCH'],
     },
   };
   deploy.addContainer(serverContainer);

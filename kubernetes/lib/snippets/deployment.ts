@@ -1,12 +1,14 @@
 import * as k8s from '@jkcfg/kubernetes/api';
+import { Format, stringify } from '@jkcfg/std';
+import { VolumeTypes } from '@k8s/lib/models';
 import { metaLabels, selector } from '@k8s/lib/snippets/label-selectors';
 import { isUndefined } from 'lodash-es';
-import { Labels, VolumeOptions, VolumeTypes } from '../models';
+import { VolumeOptions } from '../models';
 
 interface DeploymentOptions {
   replicas?: number;
   // TODO: fully support set-based reqs
-  labels: Labels;
+  labels: { [prop: string]: string };
 }
 
 const deployment = (name: string, opts: DeploymentOptions) => {
@@ -15,7 +17,7 @@ const deployment = (name: string, opts: DeploymentOptions) => {
   // Create base object
   const resource = new k8s.apps.v1.Deployment(name, {
     spec: {
-      ...selector(labels),
+      ...selector(labels, true),
       replicas: replicas || 1,
       template: {
         ...metaLabels(labels),
@@ -23,12 +25,15 @@ const deployment = (name: string, opts: DeploymentOptions) => {
     },
   });
 
+  // initialize containers and volumes
+  resource.spec!.template!.spec = {
+    containers: [],
+    volumes: [],
+  };
   const addContainer = (container: k8s.core.v1.Container) =>
-    resource.spec?.template?.spec?.containers?.push(container);
+    resource.spec!.template!.spec!.containers!.push(container);
 
-  // initialize volumes and set up alias to simplify utilities
-  resource.spec?.template?.spec!.volumes = [];
-  const volumes = resource.spec?.template?.spec?.volumes;
+  const volumes = resource.spec!.template!.spec.volumes;
 
   /**
    * Possibly stupid utility function that allows for adding Volumes with
@@ -54,18 +59,21 @@ const deployment = (name: string, opts: DeploymentOptions) => {
           `Unexpected options type given for Volume type ${type}`
         );
       }
-      if (opts?.items) vol.items = opts.items;
+      if (opts!.items) vol.items = opts!.items;
 
-      volumes?.push(vol);
+      volumes!.push(vol);
+      return;
     }
 
     if (type === VolumeTypes.pvc) {
-      volumes?.push({ persistentVolumeClaim: { claimName: name } });
+      volumes!.push({ persistentVolumeClaim: { claimName: name } });
+      return;
     }
 
     if (type === VolumeTypes.hostPath) {
       assertHostPathOptions(opts);
-      volumes?.push({ name, hostPath: opts });
+      volumes!.push({ name, hostPath: opts });
+      return;
     }
 
     throw new Error(`${type} is not implemented yet : D`);
@@ -86,12 +94,10 @@ function isItemOpts(val: any): val is { items?: k8s.core.v1.KeyToPath[] } {
 function assertHostPathOptions(
   val: any
 ): asserts val is k8s.core.v1.HostPathVolumeSource {
-  if (
-    isUndefined(val) ||
-    isUndefined(val.hostPath) ||
-    isUndefined(val.hostPath.path)
-  ) {
-    throw new Error(`Invalid HostPathSourceVolume: ${val}`);
+  if (isUndefined(val) || isUndefined(val.type) || isUndefined(val.path)) {
+    throw new Error(
+      `Invalid HostPathSourceVolume: ${stringify(val, Format.JSON)}`
+    );
   }
 }
 

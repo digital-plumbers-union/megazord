@@ -9,7 +9,7 @@ enum NodeNames {
   macready = 'macready',
 }
 
-export default {
+export const constants = {
   hostname: {
     internal: 'homestar.local',
     external: 'liveworkloft.dev',

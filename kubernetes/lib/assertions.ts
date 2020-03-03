@@ -1,12 +1,11 @@
 import * as k8s from '@jkcfg/kubernetes/api';
+import { Format, stringify } from '@jkcfg/std';
 import { KubernetesObject } from '@k8s/lib/models';
 import { isArray, isObject, isString, isUndefined } from 'lodash-es';
 
 export function assertObject(val: any): asserts val is Object {
   if (!val.metadata || !isObject(val.metadata)) {
-    throw new Error(
-      'Unable to set namespace for object without metadata field'
-    );
+    throw new Error(`Metadata not present on ${stringify(val, Format.JSON)}`);
   }
 }
 

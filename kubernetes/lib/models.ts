@@ -1,20 +1,14 @@
 import { core, meta } from '@jkcfg/kubernetes/api';
 import { isEmpty } from 'lodash-es';
 
-interface StringObject {
-  [prop: string]: string;
-}
-
-export type Labels = StringObject;
-export type Annotations = StringObject;
-export type Selector = StringObject | SetBasedSelector;
+export type Selector = { [prop: string]: string } | SetBasedSelector;
 export interface MatchExpression {
   key: string;
   operator: 'In' | 'NotIn' | 'Exists' | 'DoesNotExist';
   values?: string[];
 }
 export interface SetBasedSelector {
-  matchLabels: StringObject;
+  matchLabels: { [prop: string]: string };
   matchExpressions: Array<MatchExpression>;
 }
 

@@ -1,4 +1,4 @@
-import constants from '@k8s/clusters/homestar/constants';
+import { constants } from '@k8s/clusters/homestar/constants';
 
 const { nodes } = constants;
 const { ips, names } = nodes;
