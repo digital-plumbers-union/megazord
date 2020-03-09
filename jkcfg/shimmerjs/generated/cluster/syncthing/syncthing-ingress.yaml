@@ -1,0 +1,21 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  labels:
+    app.kubernetes.io/name: syncthing
+  name: syncthing
+  namespace: syncthing
+spec:
+  rules:
+  - host: syncthing.liveworkloft.dev
+    http:
+      paths:
+      - backend:
+          serviceName: syncthing
+          servicePort: 8384
+  tls:
+  - hosts:
+    - syncthing.liveworkloft.dev
+    secretName: syncthing-ingress

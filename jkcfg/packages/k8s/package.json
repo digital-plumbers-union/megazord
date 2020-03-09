@@ -1,0 +1,4 @@
+{
+  "name": "@dpu/jkcfg-k8s",
+  "description": "Library for working with Kubernetes using @jkcfg"
+}

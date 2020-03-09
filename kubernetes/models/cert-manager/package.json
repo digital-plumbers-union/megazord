@@ -1,7 +1,0 @@
-{
-  "name": "cert-manager",
-  "description": "Kubernetes configuration for cert-manager",
-  "main": "dist/index.js",
-  "version": "0.0.1",
-  "private": true
-}

@@ -1,0 +1,17 @@
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: nextcloud
+  namespace: nextcloud
+spec:
+  chart: https://kubernetes-charts.storage.googleapis.com/nextcloud-1.9.1.tgz
+  valuesContent: |
+    ingress:
+      annotations: ingress.annotations
+      enabled: "true"
+      tls: nextcloud-ingress
+    nextcloud:
+      host: nextcloud.liveworkloft.dev
+    persistence:
+      enabled: "true"
+      size: 500Gi

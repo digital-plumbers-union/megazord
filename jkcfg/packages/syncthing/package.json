@@ -1,0 +1,5 @@
+{
+  "name": "syncthing",
+  "description": "Kubernetes manifests for syncthing in jkcfg.",
+  "version": "0.0.1"
+}
