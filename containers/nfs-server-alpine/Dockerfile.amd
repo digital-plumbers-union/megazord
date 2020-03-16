@@ -1,0 +1,2 @@
+FROM itsthenetwork/nfs-server-alpine:latest
+COPY exports /etc/
