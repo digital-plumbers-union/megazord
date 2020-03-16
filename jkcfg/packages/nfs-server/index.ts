@@ -16,6 +16,7 @@ export const params = {
   image: image('itsthenetwork/nfs-server-alpine:latest-arm'),
   clusterIP: String('clusterIP', '10.43.217.217')!,
   port: port(2049),
+  servicePort: Number('servicePort'),
   serviceType: String('serviceType', 'LoadBalancer')!,
   hostPath: String('hostPath'),
   nodeSelector: Object('nodeSelector', {}),
@@ -29,18 +30,19 @@ const nfsServer = (p: Partial<typeof params>) => {
     image,
     clusterIP,
     port,
+    servicePort,
     hostPath,
     nodeSelector,
     serviceType,
     replicas,
-  } = merge(params, p);
+  } = merge({}, params, p);
   const app = App(name);
   const selector = appNameSelector(name);
 
   const svc = new k8s.core.v1.Service(name, {
     spec: {
       clusterIP,
-      ports: [svcPort(port)],
+      ports: [svcPort(servicePort ? servicePort : port, { targetPort: port })],
       selector,
       type: serviceType,
     },
@@ -77,14 +79,18 @@ const nfsServer = (p: Partial<typeof params>) => {
   deploy.addContainer(serverContainer);
   if (nodeSelector) {
     // TODO: more poor types from parameters
-    deploy.resource.spec!.template!.spec!.nodeSelector = nodeSelector as {
+    deploy.deployment.spec!.template!.spec!.nodeSelector = nodeSelector as {
       [prop: string]: string;
     };
   }
 
-  app.add([svc, deploy.resource].map(addNamespace(namespace)));
+  app.add([svc, deploy.deployment].map(addNamespace(namespace)));
 
-  return app;
+  if (namespace !== 'default') {
+    app.add(new k8s.core.v1.Namespace(namespace));
+  }
+
+  return app.resources;
 };
 
 export default nfsServer;

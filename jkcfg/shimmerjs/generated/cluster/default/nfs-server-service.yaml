@@ -11,6 +11,7 @@ spec:
   - name: http
     port: 2049
     protocol: TCP
+    targetPort: 2049
   selector:
     app.kubernetes.io/name: nfs-server
   type: LoadBalancer

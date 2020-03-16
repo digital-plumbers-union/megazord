@@ -44,7 +44,7 @@ const monerod = (p: Partial<typeof params>) => {
     image,
     sealedSecrets,
     secrets,
-  } = merge(params, p);
+  } = merge({}, params, p);
   const cmp = App(name);
 
   const selector = appNameSelector(name);

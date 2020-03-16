@@ -36,7 +36,7 @@ const tautulli = (p: Partial<typeof params>) => {
     namespace,
     image,
     timezone,
-  } = merge(params, p);
+  } = merge({}, params, p);
 
   const cmp = App(name);
   const selector = appNameSelector(name);

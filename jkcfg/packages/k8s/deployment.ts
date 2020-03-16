@@ -15,7 +15,7 @@ export const Deployment = (name: string, opts: DeploymentOptions) => {
   const { replicas, labels } = opts;
 
   // Create base object
-  const resource = new k8s.apps.v1.Deployment(name, {
+  const deployment = new k8s.apps.v1.Deployment(name, {
     spec: {
       ...selector(labels, true),
       replicas: replicas || 1,
@@ -26,14 +26,14 @@ export const Deployment = (name: string, opts: DeploymentOptions) => {
   });
 
   // initialize containers and volumes
-  resource.spec!.template!.spec = {
+  deployment.spec!.template!.spec = {
     containers: [],
     volumes: [],
   };
   const addContainer = (container: k8s.core.v1.Container) =>
-    resource.spec!.template!.spec!.containers!.push(container);
+    deployment.spec!.template!.spec!.containers!.push(container);
 
-  const volumes = resource.spec!.template!.spec.volumes;
+  const volumes = deployment.spec!.template!.spec.volumes;
 
   /**
    * Possibly stupid utility function that allows for adding Volumes with
@@ -79,7 +79,11 @@ export const Deployment = (name: string, opts: DeploymentOptions) => {
     throw new Error(`${type} is not implemented yet : D`);
   };
 
+  // leave resource for backwards compatibility for now
+  const resource = deployment;
+
   return {
+    deployment,
     resource,
     addContainer,
     addVolume,
@@ -94,7 +98,7 @@ function isItemOpts(val: any): val is { items?: k8s.core.v1.KeyToPath[] } {
 function assertHostPathOptions(
   val: any
 ): asserts val is k8s.core.v1.HostPathVolumeSource {
-  if (isUndefined(val) || isUndefined(val.type) || isUndefined(val.path)) {
+  if (isUndefined(val) || isUndefined(val.path)) {
     throw new Error(
       `Invalid HostPathSourceVolume: ${stringify(val, Format.JSON)}`
     );

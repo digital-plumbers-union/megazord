@@ -1,0 +1,5 @@
+{
+  "name": "spotifyd",
+  "description": "Generate spotifyd installation manifests for Kubernetes using jkcfg",
+  "version": "0.0.1"
+}

@@ -45,7 +45,7 @@ const syncthing = (p: Partial<typeof params>) => {
     ports,
     timezone,
     serviceType,
-  } = merge(params, p);
+  } = merge({}, params, p);
   const app = App(name);
 
   const selector = appNameSelector(name);
@@ -131,7 +131,7 @@ const syncthing = (p: Partial<typeof params>) => {
 
   // ensure namespace is created if we arent installing to default ns
   if (namespace !== 'default') {
-    app.add(new k8s.core.v1.Namespace(name));
+    app.add(new k8s.core.v1.Namespace(namespace));
   }
 
   return app;

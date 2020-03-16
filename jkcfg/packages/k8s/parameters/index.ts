@@ -13,6 +13,8 @@ export const name = (d: string) => String('name', d)!;
 export const namespace = (d = 'default') => String('namespace', d)!;
 export const image = (d: string) => String('image', d)!;
 export const port = (d: number) => Number('port', d)!;
+export const timezone = (d: string = 'America/New_York') =>
+  String('timezone', d)!;
 
 export const ingress = {
   enabled: Boolean('ingress.enabled', false),

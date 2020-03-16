@@ -40,19 +40,5 @@
   "prettier": {
     "singleQuote": true,
     "trailingComma": "es5"
-  },
-  "ava": {
-    "files": [
-      "**/*.spec.ts",
-      "!node_modules"
-    ],
-    "compileEnhancements": false,
-    "extensions": [
-      "ts"
-    ],
-    "require": [
-      "ts-node/register",
-      "tsconfig-paths/register"
-    ]
   }
 }

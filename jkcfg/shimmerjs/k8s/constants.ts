@@ -9,6 +9,7 @@ export enum NodeNames {
   wendy = 'wendy',
   ripley = 'ripley',
   macready = 'macready',
+  bookman = 'bookman',
 }
 
 export enum StorageClasses {
@@ -26,6 +27,7 @@ export const ips = {
   [NodeNames.ripley]: '192.168.1.18',
   [NodeNames.macready]: '192.168.1.109',
   [NodeNames.wendy]: '192.168.1.217',
+  [NodeNames.bookman]: '192.168.1.10',
 };
 
 export const hostname = {

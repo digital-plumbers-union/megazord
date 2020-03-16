@@ -1,6 +1,6 @@
 {
-  "name": "nfs-provisioner",
-  "description": "Kubernetes configuration for a nfs-client external provisoner, in @jkcfg",
+  "name": "nfs-client-provisioner",
+  "description": "Generates nfs-client-provisioner manifests using jkcfg",
   "main": "dist/index.js",
   "version": "0.0.1"
 }
