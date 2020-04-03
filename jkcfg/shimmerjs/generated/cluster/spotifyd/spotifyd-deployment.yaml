@@ -15,11 +15,14 @@ spec:
     spec:
       containers:
       - args:
+        - --verbose
         - --no-daemon
         - --device-name
         - red-speakers
         - --device
         - default:CARD=A2
+        - --bitrate
+        - "320"
         command:
         - spotifyd
         image: ggoussard/spotifyd
@@ -33,6 +36,8 @@ spec:
         - mountPath: /dev/snd
           name: snd
       hostNetwork: true
+      nodeSelector:
+        k3s.io/hostname: bane
       volumes:
       - hostPath:
           path: /usr/share/alsa
