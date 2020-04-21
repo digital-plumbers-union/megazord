@@ -1,0 +1,7 @@
+apiVersion: v1
+data:
+  serve.json: "\n      {\n        \"directoryListing\": false\n      }\n    "
+kind: ConfigMap
+metadata:
+  name: kdk12
+  namespace: kdk12

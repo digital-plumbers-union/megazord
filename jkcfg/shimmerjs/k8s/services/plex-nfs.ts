@@ -1,5 +1,4 @@
 // TODO: move this all to nfs namespace
-import { print } from '@jkcfg/std';
 import { K3s } from 'packages/k8s/labels';
 import NfsServer from 'packages/nfs-server';
 import { NodeNames } from 'shimmerjs/k8s/constants';
@@ -14,6 +13,6 @@ const bookmanNfs = NfsServer({
   servicePort: 2050,
 });
 
-print(bookmanNfs, {});
+// print(bookmanNfs, {});
 
 export default bookmanNfs;

@@ -1,8 +1,8 @@
 import * as k8s from '@jkcfg/kubernetes/api';
 import { valuesForGenerate } from '@jkcfg/kubernetes/generate';
-import { print } from '@jkcfg/std';
 import { ProductionAcme, StagingAcme } from 'packages/k8s/cluster-issuer';
 import { constants } from './constants';
+import blog from './services/blog';
 import monero from './services/monerod';
 import nextcloud from './services/nextcloud';
 import plexNfs from './services/plex-nfs';
@@ -24,12 +24,13 @@ const cluster = async () => {
     ...monero,
     certManagerNs,
     ...syncthing,
-    ...spotifyd,
+    ...(await spotifyd()),
+    ...blog,
     StagingAcme(issuers.staging.name, 'staging-issuer-account-key', email),
     ProductionAcme(issuers.prod.name, 'prod-issuer-account-key', email),
   ];
 
-  print(resources, {});
+  // print(resources, {});
 
   // handle this by exporting a function as default
   const manifests = valuesForGenerate(resources, {

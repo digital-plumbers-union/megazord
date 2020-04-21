@@ -33,6 +33,8 @@ export const ips = {
 export const hostname = {
   internal: 'homestar.local',
   external: 'liveworkloft.dev',
+  blog: 'kdk12.sh',
+  blogOld: 'emitbits.io',
 };
 
 export const router = {

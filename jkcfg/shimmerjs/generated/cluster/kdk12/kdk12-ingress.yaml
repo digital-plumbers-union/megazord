@@ -1,0 +1,28 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  name: kdk12
+  namespace: kdk12
+spec:
+  rules:
+  - host: kdk12.sh
+    http:
+      paths:
+      - backend:
+          serviceName: kdk12
+          servicePort: 5000
+  - host: emitbits.io
+    http:
+      paths:
+      - backend:
+          serviceName: kdk12
+          servicePort: 5000
+  tls:
+  - hosts:
+    - kdk12.sh
+    secretName: kdk12-sh
+  - hosts:
+    - emitbits.io
+    secretName: emitbits-io

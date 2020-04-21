@@ -49,17 +49,23 @@ export const Deployment = (name: string, opts: DeploymentOptions) => {
     opts?: VolumeOptions
   ) => {
     if (type === VolumeTypes.configMap || type === VolumeTypes.secret) {
-      const vol: any =
-        // SecretVolumeSource and ConfigMapVolumeSource use different names
-        // for some reason
-        type === VolumeTypes.configMap ? { name } : { secretName: name };
+      const vol: any = { name };
+      // SecretVolumeSource and ConfigMapVolumeSource use different names
+      // for some reason
+      if (type === VolumeTypes.configMap) vol.configMap = { name };
+      if (type === VolumeTypes.secret) vol.secret = { secretName: name };
 
-      if (opts && !isItemOpts(opts)) {
-        throw new Error(
-          `Unexpected options type given for Volume type ${type}`
-        );
+      if (opts) {
+        if (!isItemOpts(opts)) {
+          throw new Error(
+            `Unexpected options type given for Volume type ${type}`
+          );
+        }
+        // add items to correct key
+        vol.configMap
+          ? (vol.configMap.items = opts.items)
+          : (vol.secret.items = opts.items);
       }
-      if (opts!.items) vol.items = opts!.items;
 
       volumes!.push(vol);
       return;

@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kdk12
+  namespace: kdk12
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kdk12
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: kdk12
+    spec:
+      containers:
+      - args:
+        - site
+        command:
+        - serve
+        image: shimmerjs/kdk12.sh:latest
+        imagePullPolicy: Always
+        name: kdk12
+        ports:
+        - containerPort: 5000
+        volumeMounts:
+        - mountPath: /site/serve.json
+          name: kdk12
+          subPath: serve.json
+      volumes:
+      - configMap:
+          name: kdk12
+        name: kdk12

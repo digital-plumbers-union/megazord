@@ -24,7 +24,7 @@ const defaults = {
 
 // TODO: have secret inherit labels of sealedsecret regardless
 export const sealedSecret = (name: string, opts: SealedSecretOptions) => {
-  const { encryptedData, template } = merge(defaults, opts);
+  const { encryptedData, template } = merge({}, defaults, opts);
 
   return {
     kind,

@@ -14,3 +14,9 @@ gen dir:
 
 build dir: compile
   just gen {{dir}}
+
+to-stdout dir: compile
+  #!/bin/bash
+  set -ex
+  cd ..
+  jk generate -v -i jkcfg --stdout jkcfg/dist/{{dir}}/index.js
